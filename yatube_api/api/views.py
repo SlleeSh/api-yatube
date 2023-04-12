@@ -1,35 +1,34 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, \
-    IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 
-import api.serializers as sers
-from posts.models import Post, Group
-from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
+from posts.models import Group, Post
+
+from .permissions import IsAuthorOrReadOnly
+from .serializers import CommentSerializer, GroupSerializer, PostSerializer
 
 
-class PostsViewSet(viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+    """Получение группы."""
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+
+
+class PostViewSet(viewsets.ModelViewSet):
+    """Получение, создание, изменение и удаление поста."""
     queryset = Post.objects.all()
-    serializer_class = sers.PostSerializer
-    permission_classes = (IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly)
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
     def perform_create(self, serializer):
+        """Вызов сериализатора для создания и сохранения поста."""
         serializer.save(author=self.request.user)
-
-    def perform_update(self, serializer):
-        serializer.save(author=self.request.user)
-
-
-class GroupViewSet(viewsets.ModelViewSet):
-    queryset = Group.objects.all()
-    serializer_class = sers.GroupSerializer
-    permission_classes = (IsAdminOrReadOnly,)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Получение, создание, изменение и удаление комментариев."""
-    serializer_class = sers.CommentSerializer
-    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
     def get_queryset(self):
         """Возвращаем все комментарии к посту."""
