@@ -1,11 +1,10 @@
-from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
-
-from posts.models import Post, Group
-import api.serializers as sers
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, \
     IsAuthenticated
+
+import api.serializers as sers
+from posts.models import Post, Group
 from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 
 
